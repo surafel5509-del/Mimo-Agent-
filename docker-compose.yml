@@ -1,0 +1,15 @@
+# Local PostgreSQL 17 with pgvector for development and tests.
+# Usage: docker compose up -d db && npm run migrate
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: mimo
+      POSTGRES_PASSWORD: mimo
+      POSTGRES_DB: mimo_agent
+    ports:
+      - "5432:5432"
+    volumes:
+      - mimo-pg:/var/lib/postgresql/data
+volumes:
+  mimo-pg:
