@@ -29,7 +29,7 @@ export async function searchWeb(query: string, count: number, signal?: AbortSign
   const timeout = AbortSignal.any([signal ?? new AbortController().signal, AbortSignal.timeout(10_000)]);
   if (env.WEB_SEARCH_PROVIDER === 'langsearch') {
     if (!env.LANGSEARCH_API_KEY) throw new ToolError('not_configured', 'LANGSEARCH_API_KEY is missing on the server.');
-    const res = await fetch('https://api.langsearch.com/v1/web-search', {
+    const res = await fetch(`${env.LANGSEARCH_BASE_URL.replace(/\/+$/, '')}/v1/web-search`, {
       method: 'POST',
       headers: { Accept: 'application/json', 'Content-Type': 'application/json', Authorization: `Bearer ${env.LANGSEARCH_API_KEY}` },
       body: JSON.stringify({ query, count, contents: { text: true }, freshness: 'noLimit' }),

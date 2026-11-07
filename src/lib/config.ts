@@ -33,6 +33,7 @@ const EnvSchema = z.object({
   WEB_SEARCH_PROVIDER: z.enum(['none', 'brave', 'langsearch']).default('none'),
   BRAVE_SEARCH_API_KEY: z.string().optional(),
   LANGSEARCH_API_KEY: z.string().optional(),
+  LANGSEARCH_BASE_URL: z.string().url().default('https://api.langsearch.com'),
 
   SESSION_TTL_DAYS: z.coerce.number().int().min(1).max(90).default(14),
   AUTH_COOKIE_SECURE: boolish,

@@ -16,6 +16,13 @@ export default defineConfig({
     baseURL: process.env.E2E_BASE_URL ?? 'http://localhost:3000',
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
+    // Optional: point at a system/custom Chromium (e.g. in sandboxes where the Playwright CDN is blocked).
+    launchOptions: process.env.PLAYWRIGHT_CHROMIUM_PATH
+      ? {
+          executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH,
+          args: ['--no-sandbox', '--no-zygote', '--disable-gpu', '--disable-dev-shm-usage'],
+        }
+      : undefined,
   },
   projects: [
     { name: 'desktop', use: { ...devices['Desktop Chrome'] } },

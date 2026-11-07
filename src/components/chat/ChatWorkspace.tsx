@@ -23,7 +23,8 @@ type Options = {
 
 type SettingsResponse = {
   profile: { preferences: { defaultModel: string; defaultMode: AgentModeId } };
-  options: Options;
+  options: Omit<Options, 'capabilities'>;
+  capabilities: Options['capabilities'];
 };
 
 const toView = (m: MessageDto): MessageView => ({
@@ -66,7 +67,7 @@ export function ChatWorkspace({ conversationId }: { conversationId?: string }) {
     apiFetch<SettingsResponse>('/api/settings')
       .then((res) => {
         if (cancelled) return;
-        setOptions(res.options);
+        setOptions({ ...res.options, capabilities: res.capabilities });
         if (!convRef.current) {
           setMode(res.profile.preferences.defaultMode);
           setModel(res.profile.preferences.defaultModel);
@@ -447,7 +448,7 @@ export function ChatWorkspace({ conversationId }: { conversationId?: string }) {
           attachments={attachments}
           onAttach={(a) => setAttachments((list) => [...list, a])}
           onRemoveAttachment={(id) => setAttachments((list) => list.filter((a) => a.id !== id))}
-          capabilities={{ vision: options?.capabilities.vision ?? false }}
+          capabilities={{ vision: options?.capabilities?.vision ?? false }}
         />
       </section>
 

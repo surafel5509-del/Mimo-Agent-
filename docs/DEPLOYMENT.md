@@ -66,4 +66,4 @@ The app is Vercel-compatible: API routes are dynamic, and the chat route streams
 - Uploads use local disk by default (see Vercel note above).
 - Amharic translation is not yet available.
 - Vision and tool-calling support depend on the chosen NVIDIA model. Check the model card.
-- Playwright E2E must be run on a machine that can download Chromium.
+- NVIDIA and LangSearch are verified against local mocks only; run the post-deploy checks above with real keys.

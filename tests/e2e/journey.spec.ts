@@ -64,6 +64,9 @@ test('11-step user journey', async ({ page }) => {
   await page.goto('/settings');
   await page.getByRole('button', { name: 'Save settings' }).click();
   await expect(page.getByText('Settings saved.')).toBeVisible();
+  // On small screens the sidebar is a drawer opened from the top bar.
+  const openNav = page.getByRole('button', { name: 'Open navigation' });
+  if (await openNav.isVisible()) await openNav.click();
   await page.getByRole('button', { name: 'Sign out' }).click();
   await expect(page).toHaveURL(/\/login/);
   await page.goto('/chat');

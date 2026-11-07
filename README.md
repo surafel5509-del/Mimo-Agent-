@@ -18,20 +18,32 @@ MIMO AGENT is a production-oriented AI agent web platform built with Next.js (Ap
 - **Security headers**: CSP, `frame-ancestors 'none'`, HSTS, `nosniff`, strict referrer policy.
 - **Localisation-ready**: all UI strings live in `src/lib/i18n/en.ts`. Amharic is planned but not yet translated.
 
-## Honest status
+## Verification status
 
-| Area | Status |
+Everything below was executed in the build sandbox (PostgreSQL 17.11 + pgvector 0.8.0, Node 22, Chromium 131 for E2E).
+
+| Check | Result |
 |---|---|
-| Production build (`next build`) | Passes |
-| Type check (`tsc --noEmit`) | Passes |
+| Type check (`npm run typecheck`) | Pass |
 | Unit tests (48) | Pass |
-| Integration tests against PostgreSQL 17 + pgvector 0.8.0 (30: DB, auth, isolation, security, agent loop) | Pass |
-| NVIDIA NIM live calls | **Not verified in the build sandbox.** The code path is implemented and returns an explicit `not_configured` error without `NVIDIA_API_KEY`. Verify with your key (see below). |
+| Integration tests (38): DB and migrations, auth, per-user isolation, security headers and CSRF, agent loop, real NVIDIA HTTP client, LangSearch client | Pass (86 unit + integration in total) |
+| Production build (`npm run build`) | Pass |
+| E2E 11-step user journey, desktop and mobile viewports (Playwright) | Pass |
+| All top-level pages load with no uncaught JavaScript errors | Pass |
+| NVIDIA NIM live API | **Not verified live.** The HTTP client is tested against a local OpenAI-compatible mock. Live verification needs your `NVIDIA_API_KEY` (see below). |
+| LangSearch live API | **Not verified live.** Tested against a local mock of the documented request and response shape. |
 | Vision / image analysis | Enabled only when `NVIDIA_VISION_MODEL` is set. Not claimed for any model by default. |
-| Native tool calling | Requested per model when `NVIDIA_TOOL_CALLING=auto`; falls back to a JSON tool protocol if the model rejects it. |
-| LangSearch web search | Implemented against the documented endpoint. **Not verified live** from the build sandbox (outbound access was limited to GitHub and package registries). |
-| E2E (Playwright, 11-step journey) | Written in `tests/e2e/journey.spec.ts`. **Not executed here**: the sandbox cannot download Chromium. Run `npx playwright install chromium && npm run test:e2e`. |
 | Amharic | Not implemented (localisation scaffolding only). |
+
+## Tests
+
+```bash
+npm run test:unit          # no database needed
+npm run test:integration   # needs TEST_DATABASE_URL (or DATABASE_URL) pointing at a migrated PostgreSQL
+npm run test:e2e           # needs a running server; set E2E_BASE_URL
+```
+
+For E2E, install a browser with `npx playwright install chromium`. In sandboxes where Playwright's CDN is blocked, set `PLAYWRIGHT_CHROMIUM_PATH` to an existing Chromium binary.
 
 ## Quick start
 
@@ -64,6 +76,7 @@ All configuration is read on the server. Nothing secret is sent to the browser.
 | `NVIDIA_TOOL_CALLING` | `auto` (default), `native`, or `json`. |
 | `WEB_SEARCH_PROVIDER` | `none` (default), `langsearch`, or `brave`. |
 | `LANGSEARCH_API_KEY` / `BRAVE_SEARCH_API_KEY` | **Server-only.** Keys for the chosen search provider. |
+| `LANGSEARCH_BASE_URL` | Defaults to `https://api.langsearch.com`. Override only for testing against a mock. |
 | `APP_URL` | Public base URL (used for same-origin checks and links). |
 | `AUTH_COOKIE_SECURE` | `true` behind HTTPS (defaults to true in production). |
 | `ADMIN_EMAILS` | Comma-separated emails promoted to admin on registration. |
@@ -93,7 +106,7 @@ Set `WEB_SEARCH_PROVIDER=langsearch` and `LANGSEARCH_API_KEY`. The provider is c
 | `npm run migrate` | Apply pending SQL migrations. |
 | `npm run typecheck` | `tsc --noEmit`. |
 | `npm run test:unit` | Unit tests (no database). |
-| `npm run test:integration` | Integration tests. Requires `TEST_DATABASE_URL` (defaults to `postgres://postgres@localhost:5432/mimo_test`). |
+| `npm run test:integration` | Integration tests. Requires `TEST_DATABASE_URL`. |
 | `npm run test:e2e` | Playwright journey. Requires a running server and `E2E_BASE_URL`. |
 
 ## Architecture
@@ -115,7 +128,8 @@ src/
   middleware.ts        cookie-presence route gate (authorisation is re-checked server-side)
 tests/
   unit/                pure logic tests
-  integration/         database, auth, isolation, security, orchestration (scripted model)
+  integration/         database, auth, isolation, security, orchestration (scripted model),
+                       NVIDIA HTTP client and LangSearch client (local mock servers)
   e2e/                 Playwright 11-step journey
 ```
 
